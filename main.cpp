@@ -29,10 +29,9 @@ namespace top{
     explicit Dot(p_t dd);
   };
   struct f_t {
-  p_t left_bot;
-  p_t right_top;
+  p_t aa, bb;
   };
-  void make_f(IDraw** b, size_t k){}
+  void append(const IDraw* sh, p_t** ppts, size_t& s);
   void extend(p_t** pts, size_t s, p_t p)
   {
     p_t * res = new p_t[s + 1];
@@ -72,9 +71,35 @@ namespace top{
     p_t aa{minx, miny};
     p_t bb{miny, maxy};
   }
-  char * build_canvas(f_t f){}
-  void paint_canvas(char * cnv, f_t fr, const p_t * ps, size_t k, char f){}
-  void print_canvas(const char * cnv, f_t fr){}
+  size_t rows(f_t fr){
+    return (fr.bb.y - fr.aa.y + 1);
+  }
+  size_t cols(f_t fr){
+    return (fr.bb.x - fr.aa.x + 1);
+  }
+  char * build_canvas(f_t fr, char fill)
+  {
+    char* cnv = new char[rows(fr) * cols(fr)];
+    for ( size_t i = 0; i < rows(fr) * cols(fr); ++i){
+      cnv[i] = fill;
+    }
+    return cnv;
+  }
+  void paint_canvas(char * cnv, f_t fr, p_t p, char fill)
+  {
+    int dx = p.x - fr.aa.x;
+    int dy = fr.bb.y - p.y;
+    cnv[dy * cols(fr) + dx] = fill;
+  }
+  void print_canvas(std::ostream& os, const char* cnv, f_t fr)
+  {
+    for (size_t i = 0; i < rows(fr); ++i){
+      for (size_t j = 0; j < cols(fr); ++j){
+        os << cnv[i * cols(fr) + j];
+      }
+      os << "\n";
+    }
+  }
 }
 
 
@@ -82,36 +107,42 @@ int main()
 {
   using namespace top;
   int err = 0;
-  IDraw* f[3] = {};
-  p_t * p = nullptr;
+  IDraw* shp[3] = {};
+  p_t * pts = nullptr;
   size_t s = 0;
   char * cnv = nullptr;
   p_t ** kp = nullptr;
   try{
-    make_f (f, 3);
+    shp[0] = new Dot({0, 0});
+    shp[1] = new Dot({2, 3});
+    shp[2] = new Dot({-5, -2});
     for(size_t i = 0; i < 3; ++i){
-      get_points(f[i], kp, s);
+      append(shp[i], &pts, s);
     }
-    f_t fr = frame(p, s);
-    cnv = build_canvas(fr);
-    paint_canvas(cnv, fr, p, s, '#');
-    print_canvas(cnv, fr);
+    f_t fr = frame(pts, s);
+    char * cnv = build_canvas(fr, '.');
+    for (size_t i = 0; i < s; ++i) {
+      paint_canvas(pts[i], cnv, fr, '#');
+    }
+
+    paint_canvas(cnv, fr, pts, s, '#');
+    print_canvas(std::cout, cnv, fr);
   } catch(...){
     err = 1;
-    delete f[0];
-    delete f[1];
-    delete f[2];
-    delete[] p;
+    delete shp[0];
+    delete shp[1];
+    delete shp[2];
+    delete[] pts;
     delete[] cnv;
     return err;
   }
 }
 
 top::Dot::Dot(int x, int y):
-IDraw(), o{x, y} {}
+IDraw(), d{x, y} {}
 
 top::p_t top::Dot::begin() const{
-  return o;
+  return d;
 }
 
 top::p_t top::Dot::next(p_t) const {
