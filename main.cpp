@@ -10,6 +10,7 @@ namespace top{
   struct IDraw {
     virtual p_t begin() const = 0;
     virtual p_t next(p_t) const = 0;
+    virtual ~IDraw() = default;
   };
 
   bool operator == (p_t a, p_t b){
@@ -47,6 +48,7 @@ int main()
   p_t * p = nullptr;
   size_t s = 0;
   char * cnv = nullptr;
+  p_t ** kp = nullptr;
   try{
     make_f (f, 3);
     for(size_t i = 0; i < 3; ++i){
