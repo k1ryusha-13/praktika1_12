@@ -28,7 +28,7 @@ namespace top{
     Dot(int x, int y);
     explicit Dot(p_t dd);
   };
-  struct frame_t {
+  struct f_t {
   p_t left_bot;
   p_t right_top;
   };
@@ -43,7 +43,7 @@ namespace top{
     delete [] *pts;
     *pts = res;
   }
-  size_t get_points(const IDraw & d, p_t ** pts, size_t & s)
+  size_t get_points(const IDraw & d, p_t ** pts, size_t & s)////ispravit
   {
     p_t p = d.begin();
     extend(pts, s, p);
@@ -56,10 +56,25 @@ namespace top{
     }
     return delta;
   }
-  frame_t build_frame(const p_t * ps, size_t s){}
-  char * build_canvas(frame_t f){}
-  void paint_canvas(char * cnv, frame_t fr, const p_t * ps, size_t k, char f){}
-  void print_canvas(const char * cnv, frame_t fr){}
+  f_t frame(const p_t * pts, size_t s)
+  {
+    if (!s){
+      throw std::logic_error("bad size");
+    }
+    int minx = pts[0].x, maxx = minx;
+    int miny = pts[0].y, maxy = miny;
+    for (size_t i = 1; i < s; ++i){
+      minx = std::min(minx, pts[i].x);
+      maxx = std::max(maxx, pts[i].x);
+      miny = std::min(miny, pts[i].y);
+      maxy = std::max(maxy, pts[i].y);
+    }
+    p_t aa{minx, miny};
+    p_t bb{miny, maxy};
+  }
+  char * build_canvas(f_t f){}
+  void paint_canvas(char * cnv, f_t fr, const p_t * ps, size_t k, char f){}
+  void print_canvas(const char * cnv, f_t fr){}
 }
 
 
@@ -77,7 +92,7 @@ int main()
     for(size_t i = 0; i < 3; ++i){
       get_points(f[i], kp, s);
     }
-    frame_t fr = build_frame(p, s);
+    f_t fr = frame(p, s);
     cnv = build_canvas(fr);
     paint_canvas(cnv, fr, p, s, '#');
     print_canvas(cnv, fr);
