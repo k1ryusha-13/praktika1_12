@@ -24,15 +24,38 @@ namespace top{
   struct Dot:IDraw{
     p_t begin() const override;
     p_t next(p_t) const override;
-    p_t o;
+    p_t d;
     Dot(int x, int y);
+    explicit Dot(p_t dd);
   };
   struct frame_t {
   p_t left_bot;
   p_t right_top;
   };
   void make_f(IDraw** b, size_t k){}
-  void get_points(IDraw * d, p_t ** ps, size_t & s){}
+  void extend(p_t** pts, size_t s, p_t p)
+  {
+    p_t * res = new p_t[s + 1];
+    for (size_t i = 0; i < s; ++i){
+      res[i] = (*pts)[i];
+    }
+    res[s] = p;
+    delete [] *pts;
+    *pts = res;
+  }
+  size_t get_points(const IDraw & d, p_t ** pts, size_t & s)
+  {
+    p_t p = d.begin();
+    extend(pts, s, p);
+    size_t delta = 1;
+
+    while (d.next(p) != d.begin()){
+      p = d.next(p);
+      extend(pts, s + delta, p);
+      ++delta;
+    }
+    return delta;
+  }
   frame_t build_frame(const p_t * ps, size_t s){}
   char * build_canvas(frame_t f){}
   void paint_canvas(char * cnv, frame_t fr, const p_t * ps, size_t k, char f){}
