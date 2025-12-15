@@ -1,106 +1,8 @@
 #include <iostream>
-#include <cstddef>
-
-namespace top{
-
-  struct p_t {
-    int x, y;
-  };
-
-  struct IDraw {
-    virtual p_t begin() const = 0;
-    virtual p_t next(p_t) const = 0;
-    virtual ~IDraw() = default;
-  };
-
-  bool operator == (p_t a, p_t b){
-    return a.x == b.x && a.y == b.y;
-  }
-
-  bool operator != (p_t a, p_t b){
-    return !(a == b);
-  }
-
-  struct Dot:IDraw{
-    p_t begin() const override;
-    p_t next(p_t) const override;
-    p_t d;
-    Dot(int x, int y);
-    explicit Dot(p_t dd);
-  };
-  struct f_t {
-  p_t aa, bb;
-  };
-  void append(const IDraw* sh, p_t** ppts, size_t& s);
-  void extend(p_t** pts, size_t s, p_t p)
-  {
-    p_t * res = new p_t[s + 1];
-    for (size_t i = 0; i < s; ++i){
-      res[i] = (*pts)[i];
-    }
-    res[s] = p;
-    delete [] *pts;
-    *pts = res;
-  }
-  size_t get_points(const IDraw & d, p_t ** pts, size_t & s)////ispravit
-  {
-    p_t p = d.begin();
-    extend(pts, s, p);
-    size_t delta = 1;
-
-    while (d.next(p) != d.begin()){
-      p = d.next(p);
-      extend(pts, s + delta, p);
-      ++delta;
-    }
-    return delta;
-  }
-  f_t frame(const p_t * pts, size_t s)
-  {
-    if (!s){
-      throw std::logic_error("bad size");
-    }
-    int minx = pts[0].x, maxx = minx;
-    int miny = pts[0].y, maxy = miny;
-    for (size_t i = 1; i < s; ++i){
-      minx = std::min(minx, pts[i].x);
-      maxx = std::max(maxx, pts[i].x);
-      miny = std::min(miny, pts[i].y);
-      maxy = std::max(maxy, pts[i].y);
-    }
-    p_t aa{minx, miny};
-    p_t bb{miny, maxy};
-  }
-  size_t rows(f_t fr){
-    return (fr.bb.y - fr.aa.y + 1);
-  }
-  size_t cols(f_t fr){
-    return (fr.bb.x - fr.aa.x + 1);
-  }
-  char * build_canvas(f_t fr, char fill)
-  {
-    char* cnv = new char[rows(fr) * cols(fr)];
-    for ( size_t i = 0; i < rows(fr) * cols(fr); ++i){
-      cnv[i] = fill;
-    }
-    return cnv;
-  }
-  void paint_canvas(char * cnv, f_t fr, p_t p, char fill)
-  {
-    int dx = p.x - fr.aa.x;
-    int dy = fr.bb.y - p.y;
-    cnv[dy * cols(fr) + dx] = fill;
-  }
-  void print_canvas(std::ostream& os, const char* cnv, f_t fr)
-  {
-    for (size_t i = 0; i < rows(fr); ++i){
-      for (size_t j = 0; j < cols(fr); ++j){
-        os << cnv[i * cols(fr) + j];
-      }
-      os << "\n";
-    }
-  }
-}
+#include "geom.hpp"
+#include "idraw.hpp"
+#include "dot.hpp"
+#include "canvas.hpp"
 
 
 int main()
@@ -117,7 +19,7 @@ int main()
     shp[1] = new Dot({2, 3});
     shp[2] = new Dot({-5, -2});
     for(size_t i = 0; i < 3; ++i){
-      append(shp[i], &pts, s);
+      points(shp[i], &pts, s);
     }
     f_t fr = frame(pts, s);
     char * cnv = build_canvas(fr, '.');
@@ -126,7 +28,7 @@ int main()
     }
 
     paint_canvas(cnv, fr, pts, s, '#');
-    print_canvas(std::cout, cnv, fr);
+    flush(std::cout, cnv, fr);
   } catch(...){
     err = 1;
     delete shp[0];
@@ -138,13 +40,3 @@ int main()
   }
 }
 
-top::Dot::Dot(int x, int y):
-IDraw(), d{x, y} {}
-
-top::p_t top::Dot::begin() const{
-  return d;
-}
-
-top::p_t top::Dot::next(p_t) const {
-  return begin();
-}
